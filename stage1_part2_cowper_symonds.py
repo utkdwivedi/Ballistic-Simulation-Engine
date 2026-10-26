@@ -15,10 +15,11 @@ from numpy.typing import NDArray
 try:
     from numba import njit
 except ImportError:
-    def njit(func=None, **kwargs):
+    def _dummy_njit(func=None, **kwargs):
         if func is not None: return func
         def _d(f): return f
         return _d
+    njit = _dummy_njit  # type: ignore[assignment]
 
 from stage1_part1_johnson_cook import johnson_cook_stress, MATERIALS, T_ROOM
 

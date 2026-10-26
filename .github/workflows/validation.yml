@@ -1,0 +1,34 @@
+# workflow for validation harness
+# It runs on every push to main and for pull requests.
+# It installs the same Python matrix as the existing Tests workflow, installs
+# the project dependencies, and then executes the validate_against_experiments
+# script. The script will drop outputs into validation/plots/ and print a
+# summary table to stdout.
+name: Experimental Validation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.10, 3.11]
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas pyarrow matplotlib seaborn numba torch scipy pytest
+      - name: Run validation harness
+        run: |
+          python scripts/validate_against_experiments.py

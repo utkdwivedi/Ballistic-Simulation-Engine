@@ -39,9 +39,9 @@ INPUT_COLS = [
 TARGET_COLS = ["V_ms", "sigma_MPa", "T_K", "strain", "damage"]
 
 # Columns that get log10 transform BEFORE normalization
-LOG_INPUT_COLS = {"velocity_ms"}
-LOG_TARGET_COLS = set()
-LOG1P_TARGET_COLS = {"strain"}  # log1p(x) = ln(1+x) for variables starting at 0 with huge dynamic range
+LOG_INPUT_COLS: set[str] = {"velocity_ms"}
+LOG_TARGET_COLS: set[str] = set()
+LOG1P_TARGET_COLS: set[str] = {"strain"}  # log1p(x) = ln(1+x) for variables starting at 0 with huge dynamic range
 
 # Normalization ranges AFTER log-transform where applicable
 # velocity_ms: log10([50, 3000]) = [1.699, 3.477]
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
     if HAS_TORCH:
         ds = BallisticPINNDataset(os.path.join("pinn_data", "train"))
-        loader = torch.utils.data.DataLoader(ds, batch_size=64, shuffle=True)
+        loader: torch.utils.data.DataLoader = torch.utils.data.DataLoader(ds, batch_size=64, shuffle=True)  # type: ignore[arg-type]
         bx, by = next(iter(loader))
         print(f"\n  DataLoader batch: x={bx.shape}, y={by.shape}")
         print(f"  x dtype: {bx.dtype}, device: {bx.device}")

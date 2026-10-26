@@ -31,10 +31,11 @@ try:
     HAS_NUMBA = True
 except ImportError:
     HAS_NUMBA = False
-    def njit(func=None, **kwargs):
+    def _dummy_njit(func=None, **kwargs):
         if func is not None: return func
         def _d(f): return f
         return _d
+    njit = _dummy_njit  # type: ignore[assignment]
 
 # -------------------------------------------------------------------
 # Configurable constants
@@ -42,10 +43,6 @@ except ImportError:
 TAYLOR_QUINNEY_BETA: float = 0.9
 SHEAR_ZONE_WIDTH_RATIO: float = 0.3965
 PLUG_SHEAR_ANGLE_DEG: float = 6.0
-# Default effective plug expansion angle.
-# Should ideally be calibrated per-material from ballistic experiments.
-# Not a resolved crack propagation angle.
-TAN_ALPHA: float = math.tan(math.radians(PLUG_SHEAR_ANGLE_DEG))
 SPATIAL_RESOLUTION_M: float = 1e-5   # 0.01 mm fixed step size
 MIN_STEPS: int = 20
 MAX_STEPS: int = 10000
