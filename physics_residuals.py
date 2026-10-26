@@ -45,6 +45,7 @@ def jc_constitutive_residual_np(
     epsilon: np.ndarray,
     epsilon_dot: np.ndarray,
     T: np.ndarray,
+    damage: np.ndarray,
     A: float, B: float, n: float, C: float, m: float,
     T_melt: float,
     epsilon_dot_ref: float = 1.0,
@@ -53,17 +54,21 @@ def jc_constitutive_residual_np(
     """
     JC constitutive residual (NumPy).
 
-    r = σ_pred - σ_JC(ε, ε̇, T)
+    r = σ_pred - σ_JC(ε, ε̇, T) · (1 - D)
 
-    This should → 0 if the predicted stress matches the JC model.
-    The PINN enforces ‖r‖² → 0 as a soft constraint.
+    The simulator stores the RAW Johnson-Cook stress (before damage).
+    The effective stress used in ODEs is σ_eff = σ_raw · (1 - D).
+    The PINN predicts σ_eff, so we must compare against σ_JC · (1 - D).
 
     Parameters
     ----------
     sigma_pred : array
-        Network-predicted flow stress (MPa).
+        Network-predicted effective stress (MPa) = σ_eff.
     epsilon, epsilon_dot, T : arrays
         Strain, strain rate (s⁻¹), temperature (K).
+    damage : array
+        Damage variable [0, 1] — applied to the constitutive stress
+        to obtain effective stress for comparison with prediction.
     A, B, n, C, m : float
         JC material constants.
     T_melt : float
@@ -72,7 +77,7 @@ def jc_constitutive_residual_np(
     Returns
     -------
     residual : array
-        σ_pred - σ_JC  (should → 0).
+        σ_pred - σ_JC(ε, ε̇, T) · (1 - D)  (should → 0).
     """
     eps = np.maximum(epsilon, 0.0)
 
@@ -92,14 +97,20 @@ def jc_constitutive_residual_np(
     term3 = 1.0 - np.power(T_star, m)
 
     sigma_jc = term1 * term2 * term3
-    return sigma_pred - sigma_jc
+    # sigma_pred is effective stress; sigma_jc is raw JC.
+    # Compare sigma_pred against sigma_jc * (1 - damage)
+    return sigma_pred - sigma_jc * (1.0 - damage)
 
 
 def jc_constitutive_residual_torch(
-    sigma_pred,    # torch.Tensor — network output
+    sigma_pred,    # torch.Tensor — network output (effective stress, MPa).
+                    # sigma is the EFFECTIVE stress σ_eff = σ_raw · (1 - D).
     epsilon,       # torch.Tensor — strain (from input or predicted)
     epsilon_dot,   # torch.Tensor — strain rate
     T,             # torch.Tensor — temperature (K)
+    damage,        # torch.Tensor — damage [0, 1].
+                    # The simulator stores RAW JC stress; the PINN predicts σ_eff.
+                    # We compare sigma_pred against σ_JC · (1 - D).
     A: float, B: float, n: float, C: float, m: float,
     T_melt: float,
     epsilon_dot_ref: float = 1.0,
@@ -108,7 +119,12 @@ def jc_constitutive_residual_torch(
     """
     JC constitutive residual (PyTorch, differentiable).
 
-    Identical to NumPy version but uses torch ops for autograd.
+    r = σ_pred - σ_JC(ε, ε̇, T) · (1 - D)
+
+    The simulator stores the RAW Johnson-Cook stress (before damage).
+    The effective stress used in ODEs is σ_eff = σ_raw · (1 - D).
+    The PINN predicts σ_eff, so we must compare against σ_JC · (1 - D).
+
     The PINN calls this during training to compute L_constitutive.
     """
     import torch
@@ -120,14 +136,20 @@ def jc_constitutive_residual_torch(
     term2 = torch.clamp(1.0 + C * torch.log(eps_star), min=1.0)
 
     denom = T_melt - T_room
-    if denom > 0:
-        T_star = torch.clamp((T - T_room) / denom, 0.0, 1.0)
+    if isinstance(denom, torch.Tensor):
+        safe_denom = torch.clamp(denom, min=1e-6)
+        T_star = torch.where(denom > 0, torch.clamp((T - T_room) / safe_denom, 0.0, 1.0), torch.zeros_like(T))
     else:
-        T_star = torch.zeros_like(T)
+        if denom > 0:
+            T_star = torch.clamp((T - T_room) / denom, 0.0, 1.0)
+        else:
+            T_star = torch.zeros_like(T)
     term3 = 1.0 - torch.pow(T_star + 1e-12, m)
 
     sigma_jc = term1 * term2 * term3
-    return sigma_pred - sigma_jc
+    # sigma_pred is effective stress; sigma_jc is raw JC.
+    # Compare sigma_pred against sigma_jc * (1 - damage)
+    return sigma_pred - sigma_jc * (1.0 - damage)
 
 
 # ===================================================================
@@ -154,13 +176,16 @@ def momentum_residual_np(
     where F = τ · perimeter · t_plate
           τ = σ / √3     (von Mises shear)
 
+    NOTE: sigma is the effective stress σ_eff = σ_raw * (1 - D).
+    The damage factor is already applied once in the simulator and
+    must NOT be applied again here.
+
     Residual:
         r = m · V · dV/dx + F    (should → 0)
 
     For the PINN: dV/dx is computed via torch.autograd.grad(V_pred, x).
     """
-    sigma_eff = sigma * (1.0 - damage)
-    tau = sigma_eff * 1e6 / SQRT3           # Pa
+    tau = sigma * 1e6 / SQRT3           # Pa
     tan_alpha = math.tan(math.radians(shear_angle_deg))
     d_eff = d_bullet_m + 2.0 * x * tan_alpha
     perimeter = math.pi * d_eff         # m
@@ -173,8 +198,11 @@ def momentum_residual_torch(
     x,              # torch.Tensor - penetration depth (m)
     V,              # torch.Tensor — velocity (m/s)
     dV_dx,          # torch.Tensor — velocity gradient (from autograd)
-    sigma,          # torch.Tensor — flow stress (MPa)
-    damage,         # torch.Tensor — damage [0, 1]
+    sigma,          # torch.Tensor — flow stress (MPa).
+                      # sigma is already the effective stress σ_eff = σ_raw · (1 - D)
+                      # from the simulator; the damage factor must NOT be applied again.
+    damage,         # torch.Tensor — damage [0, 1] — included for API compatibility;
+                      # does NOT enter the residual calculation here.
     d_bullet_m: float,
     t_plate_m: float,
     m_bullet_kg: float,
@@ -182,6 +210,15 @@ def momentum_residual_torch(
 ):
     """
     Momentum ODE residual (PyTorch, differentiable).
+
+    The penetration ODE is:
+        m · V · dV/dx = -F
+    where F = τ · perimeter · t_plate
+          τ = σ / √3     (von Mises shear)
+
+    NOTE: sigma is the effective stress σ_eff = σ_raw * (1 - D).
+    The damage factor is already applied once in the simulator and
+    must NOT be applied again here.
 
     In the PINN training loop:
         V_pred = model(x)[:, 0]    # first output channel
@@ -191,8 +228,7 @@ def momentum_residual_torch(
     """
     import torch
 
-    sigma_eff = sigma * (1.0 - damage)
-    tau = sigma_eff * 1e6 / SQRT3
+    tau = sigma * 1e6 / SQRT3
     tan_alpha = math.tan(math.radians(shear_angle_deg))
     d_eff = d_bullet_m + 2.0 * x * tan_alpha
     perimeter = math.pi * d_eff
@@ -261,26 +297,39 @@ def energy_residual_np(
     where β is the Taylor-Quinney coefficient (~0.9 — fraction of
     plastic work converted to heat).
 
+    NOTE: sigma is the effective stress σ_eff = σ_raw * (1 - D).
+    The damage factor is already applied once in the simulator and
+    must NOT be applied again here.
+
     Residual:
         r = dT/dx - β·σ·dε_dx / (ρ·Cp)    (should → 0)
     """
-    sigma_eff = sigma * (1.0 - damage)
-    expected = beta * sigma_eff * 1e6 * d_eps_dx / (rho * Cp)
+    expected = beta * sigma * 1e6 * d_eps_dx / (rho * Cp)
     return dT_dx - expected
 
 
 def energy_residual_torch(
     dT_dx,          # torch.Tensor — temperature gradient (from autograd)
-    sigma,          # torch.Tensor — flow stress (MPa)
-    damage,         # torch.Tensor — damage [0, 1]
+    sigma,          # torch.Tensor — flow stress (MPa).
+                      # sigma is already the effective stress σ_eff = σ_raw · (1 - D)
+                      # from the simulator; the damage factor must NOT be applied again.
+    damage,         # torch.Tensor — damage [0, 1] — included for API compatibility;
+                      # does NOT enter the residual calculation here.
     d_eps_dx,       # torch.Tensor — strain gradient
     rho: float,
     Cp: float,
     beta: float = TAYLOR_QUINNEY_BETA,
 ):
-    """Adiabatic heating residual (PyTorch, differentiable)."""
-    sigma_eff = sigma * (1.0 - damage)
-    expected = beta * sigma_eff * 1e6 * d_eps_dx / (rho * Cp)
+    """Adiabatic heating residual (PyTorch, differentiable).
+
+    Temperature evolves as:
+        dT/dx = β · σ_eff · (dε/dx) / (ρ · Cp)
+
+    NOTE: sigma is the effective stress σ_eff = σ_raw * (1 - D).
+    The damage factor is already applied once in the simulator and
+    must NOT be applied again here.
+"""
+    expected = beta * sigma * 1e6 * d_eps_dx / (rho * Cp)
     return dT_dx - expected
 
 
@@ -319,7 +368,7 @@ def pinn_physics_loss_np(
     Returns dict with individual and total losses for logging.
     """
     r_const = jc_constitutive_residual_np(
-        sigma_pred, eps_pred, eps_dot, T_pred,
+        sigma_pred, eps_pred, eps_dot, T_pred, damage_pred,
         A, B, n, C, m, T_melt)
 
     r_mom = momentum_residual_np(
@@ -397,7 +446,7 @@ if __name__ == "__main__":
 
     # --- Residual 1: JC constitutive ---
     r_const = jc_constitutive_residual_np(
-        sigma_i, eps_i, edot_i, T_i,
+        sigma_i, eps_i, edot_i, T_i, damage_i,
         mat["A"], mat["B"], mat["n"], mat["C"], mat["m"],
         mat["T_melt"])
     print(f"\n  JC Constitutive Residual:")
@@ -409,11 +458,12 @@ if __name__ == "__main__":
     d_bullet = 7.62e-3
     t_plate = 10e-3
     m_bullet = 7.9e-3
+    shear_angle = 6.0
 
     x_i = x[:N]
     r_mom = momentum_residual_np(
         x_i, V_i, dV_dx, sigma_i, damage_i,
-        d_bullet, t_plate, m_bullet)
+        d_bullet, t_plate, m_bullet, shear_angle)
     print(f"\n  Momentum ODE Residual:")
     print(f"    Mean |r|:  {np.mean(np.abs(r_mom)):.2f} N")
     print(f"    Max  |r|:  {np.max(np.abs(r_mom)):.2f} N")

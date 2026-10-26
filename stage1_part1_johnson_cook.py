@@ -64,6 +64,7 @@ _FALLBACK: Dict[str, dict] = {
         "A": 2100.0, "B": 0.0, "n": 0.01, "C": 0.003, "m": 1.0,
         "T_melt": 2345.0, "rho": 3900.0, "E": 370e3, "Cp": 880.0,
         "cs_D": 10000.0, "cs_q": 4.0, "hardness_HRC": 70.0,
+        "failure_strain": 0.3,
     },
     "UHMWPE": {
         "label": "Ultra-High-Molecular-Weight Polyethylene (Dyneema/Spectra)",

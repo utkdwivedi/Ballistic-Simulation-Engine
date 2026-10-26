@@ -1,4 +1,5 @@
 import os
+# pyrefly: ignore [missing-import]
 import numpy as np
 import matplotlib.pyplot as plt
 from simulation import simulate_trajectory, simulate_ballistic_impact

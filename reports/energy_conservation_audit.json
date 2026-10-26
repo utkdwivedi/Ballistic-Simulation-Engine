@@ -1,0 +1,39 @@
+{
+  "status": "success",
+  "phase": 4,
+  "task": "4.2 Energy Conservation & Boundary Audit",
+  "simulation_energy_audit": {
+    "n_trajectories": 150,
+    "total_collocation_steps": 341874,
+    "energy_error_mean": 0.0006963038765412702,
+    "energy_error_median": 0.0003463858642207586,
+    "energy_error_p95": 0.002297954482491343,
+    "energy_error_max": 0.016204681016039394,
+    "monotonicity_violations": {
+      "velocity_accel": 0,
+      "temperature_cooling": 0,
+      "negative_strain_inc": 0,
+      "damage_healing": 0
+    },
+    "all_energy_conserved": true
+  },
+  "hard_pinn_boundary_audit": {
+    "n_samples": 1000,
+    "max_V0_error": 0.0,
+    "mean_V0_error": 0.0,
+    "max_T0_error": 0.0,
+    "mean_T0_error": 0.0,
+    "max_strain0_error": 0.0,
+    "max_damage0_error": 0.0,
+    "exact_bc_satisfied": true
+  },
+  "hard_pinn_monotonicity_audit": {
+    "total_eval_steps": 341874,
+    "velocity_accel_violations": 0,
+    "velocity_accel_rate": 0.0,
+    "temperature_cooling_violations": 0,
+    "temperature_cooling_rate": 0.0,
+    "negative_strain_violations": 0,
+    "damage_healing_violations": 0
+  }
+}

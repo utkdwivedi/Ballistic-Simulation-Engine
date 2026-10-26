@@ -123,7 +123,6 @@ def _integrate_core(
     w = w_ratio * d_bullet
     perimeter = math.pi * d_bullet
     tan_alpha = math.tan(math.radians(shear_angle))
-    tan_alpha = math.tan(math.radians(shear_angle))
     dx = t_plate / n_steps
 
     V = V0
@@ -193,6 +192,12 @@ def _integrate_core(
         if D > peak_damage:
             peak_damage = D
 
+        # Once fully failed (D >= 1.0), strain stops accumulating.
+        # This caps peak strain at failure_strain and prevents
+        # unphysical strain growth in fully-damaged material.
+        if D >= 1.0:
+            epsilon = failure_strain
+
         dT = beta * sigma_eff * 1e6 * d_eps / (rho * Cp)
         T += dT
 
@@ -235,17 +240,17 @@ def _integrate_trajectory(
     w = w_ratio * d_bullet
     perimeter = math.pi * d_bullet
     tan_alpha = math.tan(math.radians(shear_angle))
-    tan_alpha = math.tan(math.radians(shear_angle))
     dx = t_plate / n_steps
 
-    # Pre-allocate trajectory arrays
-    x_arr = np.empty(n_steps)
-    V_arr = np.empty(n_steps)
-    sigma_arr = np.empty(n_steps)
-    T_arr = np.empty(n_steps)
-    eps_arr = np.empty(n_steps)
-    edot_arr = np.empty(n_steps)
-    D_arr = np.empty(n_steps)
+    # Pre-allocate trajectory arrays (+2 buffer ensures space if projectile arrests on final step)
+    max_pts = n_steps + 2
+    x_arr = np.empty(max_pts)
+    V_arr = np.empty(max_pts)
+    sigma_arr = np.empty(max_pts)
+    T_arr = np.empty(max_pts)
+    eps_arr = np.empty(max_pts)
+    edot_arr = np.empty(max_pts)
+    D_arr = np.empty(max_pts)
 
     V = V0
     T = T0
@@ -268,14 +273,15 @@ def _integrate_trajectory(
         sigma_eff = sigma * (1.0 - D_mid)
 
         # Store state BEFORE update (collocation point)
-        x_arr[n_active] = x
-        V_arr[n_active] = V
-        sigma_arr[n_active] = sigma_eff
-        T_arr[n_active] = T
-        eps_arr[n_active] = epsilon
-        edot_arr[n_active] = eps_dot
-        D_arr[n_active] = D
-        n_active += 1
+        if n_active < max_pts:
+            x_arr[n_active] = x
+            V_arr[n_active] = V
+            sigma_arr[n_active] = sigma_eff
+            T_arr[n_active] = T
+            eps_arr[n_active] = epsilon
+            edot_arr[n_active] = eps_dot
+            D_arr[n_active] = D
+            n_active += 1
 
         tau_Pa = (sigma_eff * 1e6) / SQRT3
         d_eff = d_bullet + 2.0 * x * tan_alpha
@@ -292,22 +298,27 @@ def _integrate_trajectory(
             d_eps_partial = x_partial / (w * SQRT3)
             epsilon += d_eps_partial
             D = min(D + d_eps_partial / failure_strain, 1.0)
+            if D >= 1.0:
+                epsilon = failure_strain
             T += beta * sigma_eff * 1e6 * d_eps_partial / (rho * Cp)
-            
-            x_arr[n_active] = x
-            V_arr[n_active] = V
-            sigma_arr[n_active] = sigma_eff
-            T_arr[n_active] = T
-            eps_arr[n_active] = epsilon
-            edot_arr[n_active] = eps_dot
-            D_arr[n_active] = D
-            n_active += 1
+
+            if n_active < max_pts:
+                x_arr[n_active] = x
+                V_arr[n_active] = V
+                sigma_arr[n_active] = sigma_eff
+                T_arr[n_active] = T
+                eps_arr[n_active] = epsilon
+                edot_arr[n_active] = eps_dot
+                D_arr[n_active] = D
+                n_active += 1
             break
 
         V = math.sqrt(V_sq_new)
         x += dx
         epsilon += d_eps
         D = min(D + dD, 1.0)
+        if D >= 1.0:
+            epsilon = failure_strain
         T += beta * sigma_eff * 1e6 * d_eps / (rho * Cp)
 
     return (n_active, x_arr, V_arr, sigma_arr, T_arr, eps_arr, edot_arr, D_arr)
@@ -573,8 +584,11 @@ def simulate_ballistic_impact(
             UserWarning, stacklevel=2)
 
     mat = MATERIALS[material_name]
-    # Tuned against empirical 12mm RHA V50 (619.5 m/s)
-    SHEAR_ZONE_WIDTH_RATIO = 0.6841
+    # Use the supplied shear_zone_ratio or fall back to module-level constant.
+    # The module-level SHEAR_ZONE_WIDTH_RATIO = 0.3965 is the value used for
+    # dataset generation (generate_pinn_data / simulate_trajectory). If a
+    # different value is needed (e.g. for V50 calibration), pass it explicitly
+    # via the shear_zone_ratio argument.
     w_ratio = shear_zone_ratio if shear_zone_ratio is not None else SHEAR_ZONE_WIDTH_RATIO
     shear_angle = plug_shear_angle_deg if plug_shear_angle_deg is not None else PLUG_SHEAR_ANGLE_DEG
     if w_ratio <= 0:
@@ -662,14 +676,19 @@ def generate_pinn_data(
     max_workers: Optional[int] = None,
     chunk_size: int = 500,
     seed: int = 42,
+    stratified_sampling: bool = True,
+    stratified_frac: float = 0.12,  # oversample first 12% of depth
 ) -> str:
     """
     PINN-ready trajectory data generator with chunked disk I/O.
 
     For each (thickness, velocity, material, obliquity, temperature) sample:
       1. Runs the trajectory kernel (NOT endpoint-only).
-      2. Samples n_collocation points from the trajectory.
+      2. Samples n_collocation points from the trajectory (uniform or stratified).
       3. NO V_BL bisection — PINN learns physics, not limits.
+
+    Stratified sampling oversamples the first 10-15% of penetration depth
+    to better capture steep gradients near the impact surface.
 
     Each thread chunk writes a parquet shard to disk immediately,
     keeping RAM usage constant regardless of dataset size.
@@ -729,7 +748,16 @@ def generate_pinn_data(
 
             # Sample collocation points from trajectory
             n_pts = min(n_collocation, na)
-            indices = np.sort(rng.choice(na, size=n_pts, replace=False))
+            if stratified_sampling and na > 5:
+                # Stratified: oversample first stratified_frac of trajectory
+                split_idx = max(1, int(na * stratified_frac))
+                n_early = max(1, int(n_pts * 0.6))  # 60% from early region
+                n_late = n_pts - n_early
+                early_indices = np.sort(rng.choice(split_idx, size=min(n_early, split_idx), replace=False))
+                late_indices = np.sort(rng.choice(na - split_idx, size=min(n_late, na - split_idx), replace=False)) + split_idx
+                indices = np.concatenate([early_indices, late_indices])
+            else:
+                indices = np.sort(rng.choice(na, size=n_pts, replace=False))
 
             for idx in indices:
                 rows.append({

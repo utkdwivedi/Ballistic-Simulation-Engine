@@ -1,0 +1,160 @@
+{
+  "train": {
+    "split": "train",
+    "n_shards": 140,
+    "n_rows": 956563,
+    "has_nan": false,
+    "nan_counts": {
+      "thickness_mm": 0,
+      "velocity_ms": 0,
+      "obliquity_deg": 0,
+      "material_id": 0,
+      "plate_temperature_K": 0,
+      "x_mm": 0,
+      "V_ms": 0,
+      "sigma_MPa": 0,
+      "T_K": 0,
+      "strain": 0,
+      "strain_rate": 0,
+      "damage": 0
+    },
+    "ranges": {
+      "V_ms": [
+        0.0,
+        1498.9676513671875
+      ],
+      "sigma_MPa": [
+        0.0,
+        2169.534912109375
+      ],
+      "T_K": [
+        233.0029754638672,
+        598.40380859375
+      ],
+      "strain": [
+        9.999999747378752e-05,
+        3.000084638595581
+      ],
+      "damage": [
+        0.0,
+        1.0
+      ]
+    },
+    "material_distribution": {
+      "copper": 210940,
+      "UHMWPE": 209692,
+      "RHA_steel": 194223,
+      "aluminium_7075_T6": 187012,
+      "alumina_Al2O3": 154696
+    },
+    "perforated_rows": 126157,
+    "arrested_rows": 5482,
+    "perforation_rate": 0.1319
+  },
+  "val": {
+    "split": "val",
+    "n_shards": 30,
+    "n_rows": 204939,
+    "has_nan": false,
+    "nan_counts": {
+      "thickness_mm": 0,
+      "velocity_ms": 0,
+      "obliquity_deg": 0,
+      "material_id": 0,
+      "plate_temperature_K": 0,
+      "x_mm": 0,
+      "V_ms": 0,
+      "sigma_MPa": 0,
+      "T_K": 0,
+      "strain": 0,
+      "strain_rate": 0,
+      "damage": 0
+    },
+    "ranges": {
+      "V_ms": [
+        0.0,
+        1497.94921875
+      ],
+      "sigma_MPa": [
+        0.0,
+        2169.617431640625
+      ],
+      "T_K": [
+        233.03494262695312,
+        597.8084106445312
+      ],
+      "strain": [
+        9.999999747378752e-05,
+        3.0
+      ],
+      "damage": [
+        0.0,
+        1.0
+      ]
+    },
+    "material_distribution": {
+      "copper": 45094,
+      "UHMWPE": 44035,
+      "RHA_steel": 42422,
+      "aluminium_7075_T6": 39973,
+      "alumina_Al2O3": 33415
+    },
+    "perforated_rows": 27061,
+    "arrested_rows": 1182,
+    "perforation_rate": 0.132
+  },
+  "test": {
+    "split": "test",
+    "n_shards": 30,
+    "n_rows": 205308,
+    "has_nan": false,
+    "nan_counts": {
+      "thickness_mm": 0,
+      "velocity_ms": 0,
+      "obliquity_deg": 0,
+      "material_id": 0,
+      "plate_temperature_K": 0,
+      "x_mm": 0,
+      "V_ms": 0,
+      "sigma_MPa": 0,
+      "T_K": 0,
+      "strain": 0,
+      "strain_rate": 0,
+      "damage": 0
+    },
+    "ranges": {
+      "V_ms": [
+        0.0,
+        1494.7564697265625
+      ],
+      "sigma_MPa": [
+        0.0,
+        2169.51416015625
+      ],
+      "T_K": [
+        233.09170532226562,
+        598.3224487304688
+      ],
+      "strain": [
+        9.999999747378752e-05,
+        3.0000388622283936
+      ],
+      "damage": [
+        0.0,
+        1.0
+      ]
+    },
+    "material_distribution": {
+      "UHMWPE": 46240,
+      "copper": 43874,
+      "RHA_steel": 41699,
+      "aluminium_7075_T6": 39479,
+      "alumina_Al2O3": 34016
+    },
+    "perforated_rows": 27638,
+    "arrested_rows": 1172,
+    "perforation_rate": 0.1346
+  },
+  "total_rows": 1366810,
+  "audit_passed": false
+}

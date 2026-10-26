@@ -6,28 +6,48 @@ from torch.utils.data import DataLoader
 from pinn_dataloader import BallisticPINNDataset
 from train_simple_nn import BallisticFCNN
 
+import argparse
+from infer import load_model
+
 def main():
+    parser = argparse.ArgumentParser(description="Generate Parity Plots (Pred vs True)")
+    parser.add_argument("--model", type=str, default="models/pinn_production_best.pt", help="Path to model weights")
+    parser.add_argument("--meta", type=str, default="models/pinn_production_meta.json", help="Path to metadata JSON")
+    parser.add_argument("--save_path", type=str, default="plots/parity_plot.png", help="Path to save output plot")
+    args = parser.parse_args()
+
     print("="*60)
-    print("  Phase 2: Generating Parity Plots (Pred vs True)")
+    print("  Phase 5: Generating Parity Plots (Pred vs True)")
     print("="*60)
-    
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model_path = "models/fcnn_baseline.pt"
-    
+    model_path = args.model
+    meta_path = args.meta
+
+    # Fallback to fcnn_baseline if production model not yet run
     if not os.path.exists(model_path):
-        print(f"Model not found at {model_path}. Run 'python train_simple_nn.py' first.")
+        model_path = "models/fcnn_baseline.pt"
+        meta_path = "models/fcnn_meta.json"
+
+    if not os.path.exists(model_path):
+        print(f"Model not found at {model_path}. Run training first.")
         return
-        
+
     val_dir = "pinn_data/val"
     if not os.path.exists(val_dir):
         print("Validation data not found.")
         return
-        
+
     ds = BallisticPINNDataset(val_dir, normalize=True)
     loader = DataLoader(ds, batch_size=2048, shuffle=False)
-    
-    model = BallisticFCNN().to(device)
-    model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
+
+    if os.path.exists(meta_path):
+        model, _ = load_model(model_path, meta_path)
+    else:
+        model = BallisticFCNN()
+        model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True))
+
+    model = model.to(device)
     model.eval()
     
     all_preds = []
@@ -78,10 +98,11 @@ def main():
     
     axes[-1].axis('off') # Hide the empty 6th subplot
         
-    plt.tight_layout()
-    os.makedirs("plots", exist_ok=True)
-    plt.savefig("plots/parity_plot.png", dpi=300, bbox_inches='tight')
-    print("Saved parity plots to plots/parity_plot.png")
+    save_dir = os.path.dirname(args.save_path)
+    if save_dir:
+        os.makedirs(save_dir, exist_ok=True)
+    plt.savefig(args.save_path, dpi=300, bbox_inches='tight')
+    print(f"Saved parity plots to {args.save_path}")
 
 if __name__ == "__main__":
     main()

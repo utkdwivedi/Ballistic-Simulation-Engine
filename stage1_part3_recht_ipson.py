@@ -32,22 +32,11 @@ from stage1_part1_johnson_cook import MATERIALS, T_ROOM
 
 # ===================================================================
 #  PLUG GEOMETRY (shared with simulation.py — same formulas)
+#  The canonical plug-mass implementation lives in simulation._plug_mass.
+#  This module imports it to avoid duplicating the truncated-cone formula.
 # ===================================================================
 
-def _plug_mass_ri(
-    r_bullet_m: float,
-    t_plate_m: float,
-    rho_plate: float,
-    shear_angle_deg: float = 6.0,
-) -> float:
-    """
-    Truncated-cone plug mass.
-    Matches simulation._plug_mass exactly.
-    """
-    alpha = math.radians(shear_angle_deg)
-    r1 = r_bullet_m
-    r2 = r_bullet_m + t_plate_m * math.tan(alpha)
-    return rho_plate * math.pi * t_plate_m / 3.0 * (r1*r1 + r1*r2 + r2*r2)
+from simulation import _plug_mass as _plug_mass_ri
 
 
 def _perforation_energy(

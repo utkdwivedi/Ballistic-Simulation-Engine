@@ -1,0 +1,38 @@
+{
+  "In-Distribution": {
+    "fcnn_mse": 2.0884633118856543e-06,
+    "pinn_mse": 6.489343437957966e-05,
+    "fcnn_phys_loss": 0.0011162349430917486,
+    "pinn_phys_loss": 0.0007873790267088528,
+    "physics_loss_reduction_pct": 29.461173754104003,
+    "fcnn_accel_violations": 98,
+    "pinn_accel_violations": 0
+  },
+  "OOD Hypervelocity (1600-2200 m/s)": {
+    "fcnn_mse": 3.521344846528033e-06,
+    "pinn_mse": 7.421389151810824e-05,
+    "fcnn_phys_loss": 0.001411520884074788,
+    "pinn_phys_loss": 0.0011529379521056802,
+    "physics_loss_reduction_pct": 18.319454901682665,
+    "fcnn_accel_violations": 502,
+    "pinn_accel_violations": 0
+  },
+  "OOD Heavy Armor (55-75 mm)": {
+    "fcnn_mse": 2.3970451337618215e-05,
+    "pinn_mse": 0.0002484072685749399,
+    "fcnn_phys_loss": 0.002052127124948634,
+    "pinn_phys_loss": 0.001230820374985342,
+    "physics_loss_reduction_pct": 40.0222159523196,
+    "fcnn_accel_violations": 487,
+    "pinn_accel_violations": 0
+  },
+  "OOD Combined Extreme (Hypervelocity + Heavy Armor)": {
+    "fcnn_mse": 1.3464167276803588e-05,
+    "pinn_mse": 0.00026484448183812975,
+    "fcnn_phys_loss": 0.0023432755309234685,
+    "pinn_phys_loss": 0.0017468711060549442,
+    "physics_loss_reduction_pct": 25.45174123757303,
+    "fcnn_accel_violations": 0,
+    "pinn_accel_violations": 0
+  }
+}

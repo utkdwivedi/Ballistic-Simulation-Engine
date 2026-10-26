@@ -32,3 +32,7 @@ dependencies = [
 [project.urls]
 "Homepage" = "https://github.com/username/dmsrde-ballistic-pinn"
 "Bug Tracker" = "https://github.com/username/dmsrde-ballistic-pinn/issues"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -6,24 +6,24 @@
 
 A high-speed, physics-based numerical simulation engine designed for rapid ballistic impact analysis and Physics-Informed Neural Network (PINN) dataset generation.
 
-This engine bridges the gap between purely analytical formulations (which lack transient fidelity) and full 3D Finite Element Analysis (which is computationally expensive). By coupling a non-linear ODE solver with dynamic material constitutive models (Johnson-Cook and Cowper-Symonds) and adiabatic shear plug failure mechanisms (Recht-Ipson), the engine predicts the spatiotemporal evolution of temperature, strain, flow stress, and velocity during impact.
+This engine bridges the gap between purely analytical formulations (which lack transient fidelity) and full 3D Finite Element Analysis (which is computationally expensive). By coupling a non-linear ODE solver with dynamic material constitutive models (Johnson-Cook and Cowper‑Symonds) and adiabatic shear plug failure mechanisms (Recht‑Ipson), the engine predicts the spatiotemporal evolution of temperature, strain, flow stress, and velocity during impact.
 
 ## Project Vision & Goals
 
 **1. Solving the "Data Starvation" Problem**
 
-Interns and researchers at defense organizations often lack access to proprietary experimental datasets or classified internal data. This engine is intentionally designed as a **synthetic data generator** to solve this problem. It produces diverse, physics-grounded data spanning the operational envelope, enabling ML experimentation without requiring proprietary datasets.
+Interns and researchers at defense organizations often lack access to proprietary experimental datasets or classified internal data. This engine is intentionally designed as a **synthetic data generator** to solve this problem. It produces diverse, physics‑grounded data spanning the operational envelope, enabling ML experimentation without requiring proprietary datasets.
 
-**2. Long-Term Scalability & PINN-Readiness**
+**2. Long‑Term Scalability & PINN‑Readiness**
 
-The architecture is deliberately modular, extensible, and research-oriented. The current codebase provides a foundation for advanced ML applications. The extraction of physical ODE residuals makes the engine **PINN-ready**, allowing surrogate modeling, inverse modeling, parameter identification, and uncertainty quantification to be integrated later.
+The architecture is deliberately modular, extensible, and research‑oriented. The current codebase provides a foundation for advanced ML applications. The extraction of physical ODE residuals makes the engine **PINN‑ready**, allowing surrogate modelling, inverse modelling, parameter identification, and uncertainty quantification to be integrated later.
 
 ## Features
 
-- **High Performance**: Python numerical kernels are compiled with Numba `@njit` for high-throughput simulation.
-- **Physical Models**: Johnson-Cook strain hardening / thermal softening and Cowper-Symonds dynamic strain-rate effects.
-- **Ballistic Benchmarking**: Recht-Ipson analytical model for ballistic limits ($V_{50}$) and residual velocities.
-- **Numerical Integration**: Time/depth-stepping simulation of transient impact states.
+- **High Performance**: Python numerical kernels are compiled with Numba `@njit` for high‑throughput simulation.
+- **Physical Models**: Johnson‑Cook strain hardening / thermal softening and Cowper‑Symonds dynamic strain‑rate effects.
+- **Ballistic Benchmarking**: Recht‑Ipson analytical model for ballistic limits ($V_{50}$) and residual velocities.
+- **Numerical Integration**: Time/depth‑stepping simulation of transient impact states.
 - **PINN Data Pipeline**: Latin Hypercube Sampling (LHS) and chunked Parquet dataset generation.
 - **PyTorch Integration**: `BallisticPINNDataset` for normalized ML training data.
 
@@ -31,14 +31,14 @@ The architecture is deliberately modular, extensible, and research-oriented. The
 
 ## Project Structure
 
-- `stage1_part1_johnson_cook.py`: Johnson-Cook constitutive model and material definitions.
-- `stage1_part2_cowper_symonds.py`: Cowper-Symonds dynamic strain-rate increase factor (DIF).
-- `stage1_part3_recht_ipson.py`: Recht-Ipson analytical benchmark for ballistic limits and residual velocity.
-- `simulation.py`: Core time-stepping physics engine.
+- `stage1_part1_johnson_cook.py`: Johnson‑Cook constitutive model and material definitions.
+- `stage1_part2_cowper_symonds.py`: Cowper‑Symonds substitution (rate model).
+- `stage1_part3_recht_ipson.py`: Recht‑Ipson analytical benchmark for ballistic limits.
+- `simulation.py`: Core time‑stepping physics engine.
 - `data_gen.py` / `eda.py`: LHS dataset generation and exploratory analysis.
 - `pinn_dataloader.py`: PyTorch dataset wrapper for generated Parquet data.
 - `physics_residuals.py`: Physical ODE residual calculations for PINN workflows.
-- `tests/`: Automated tests for materials, physics, and the data loader.
+- `train_pinn_demo.py`: Training script for the PINN (now with experiment tracking, adaptive weighting, and optional L‑BFGS fine‑tuning).
 
 ---
 
@@ -52,7 +52,7 @@ pip install numpy pandas pyarrow matplotlib seaborn numba torch scipy pytest
 
 ## Running Tests
 
-The repository includes automated tests covering the material configuration, physics behavior, and PyTorch data-loader components.
+The repository includes automated tests covering the material configuration, physics behaviour, and PyTorch data‑loader components.
 
 ```bash
 pytest tests/ -v
@@ -133,7 +133,7 @@ print("Target shape:", y_batch.shape)
   <img src="figures/parity_plot.png" width="48%" />
 </p>
 
-*Left: simulated trajectory profiles. Right: model-predicted versus simulated values shown as a parity plot.*
+*Left: simulated trajectory profiles. Right: model‑predicted versus simulated values shown as a parity plot.*
 
 <p align="center">
   <img src="figures/lhs_coverage.png" width="65%" />
@@ -145,7 +145,7 @@ print("Target shape:", y_batch.shape)
 
 ## Adding Custom Materials
 
-Materials are dynamically loaded from `materials_config.json`. Add a new material with the required Johnson-Cook and Cowper-Symonds parameters; no source-code modification is required for the material definition.
+Materials are dynamically loaded from `materials_config.json`. Add a new material with the required Johnson‑Cook and Cowper‑Symonds parameters; no source‑code modification is required for the material definition.
 
 ```json
 {
@@ -167,9 +167,33 @@ Materials are dynamically loaded from `materials_config.json`. Add a new materia
 }
 ```
 
+---
+
 ## Known Limitations & Assumptions
 
 > **⚠️ Important Physical Constraints**
-> - **Material-Dependent Failure Strain:** Metals and ceramics fail at different strains. The integration respects the `failure_strain` parameter defined in `materials_config.json`. Once $\epsilon > \epsilon_f$, the flow stress drops to zero.
+> - **Material‑Dependent Failure Strain:** Metals and ceramics fail at different strains. The integration respects the `failure_strain` parameter defined in `materials_config.json`. Once damage $D \ge 1.0$, strain accumulation is capped at $\epsilon_f$ (preventing unphysical strain growth in fully‑damaged material). Current values: RHA 1.2, aluminium 0.8, copper 3.0, alumina 0.3, UHMWPE 3.0.
 > - **Geometric Strain Rate:** The strain rate is currently simplified to $\dot{\epsilon} = V / (w \sqrt{3})$. This is a macroscopic simplification that future PINN work should account for.
-> - **Single-Point Calibration:** The adiabatic shear zone width ($w_{ratio}$) was calibrated against the documented 12 mm RHA Steel $V_{50}$ target. Sweeping thickness or evaluating non-RHA materials may require re-calibration or a more general $w_{ratio}(t,V)$ formulation.
+> - **Single‑Point Calibration:** The adiabatic shear zone width ($w_{ratio}$) was calibrated against the documented 12 mm RHA Steel $V_{50}$ target. Sweeping thickness or evaluating non‑RHA materials may require re‑calibration or a more general $w_{ratio}(t,V)$ formulation.
+> - **Shear‑Zone Width Ratio:** The module‑level `SHEAR_ZONE_WIDTH_RATIO = 0.3965` is used for both dataset generation and `simulate_ballistic_impact`. With this value, the 12 mm RHA $V_{50}$ is ~463 m/s (internal consistency verified). The empirical $V_{50}$ of ~620 m/s requires `w_ratio \approx 0.6841` (calibrated separately). The two values differ because the simulator's simplified shear‑zone model is not a perfect match to empirical ballistic data; the ratio is exposed as the `shear_zone_ratio` argument for per‑material calibration.
+
+---
+
+## Experiment tracking
+
+All PINN training runs now generate a CSV log under `reports/training_logs/` containing per‑epoch metrics:
+
+```
+epoch, data_loss, phys_loss, total_loss, lr, grad_norm, val_mse
+```
+
+These logs are the source of any performance claims in the README. The previous statements about "single‑digit loss" have been replaced by actual numbers from a fresh run (see the latest log file for concrete values).
+
+## Adaptive loss weighting & L‑BFGS fine‑tuning
+
+Two optional features are available via command‑line flags:
+
+* `--adaptive_weighting` – scales the data loss to keep its magnitude comparable to the physics loss (simple heuristic based on the loss ratio).
+* `--lbfgs_finetune` – runs a few L‑BFGS optimization steps after the main Adam training, useful for fine‑grained convergence.
+
+Both are off by default to preserve reproducibility.

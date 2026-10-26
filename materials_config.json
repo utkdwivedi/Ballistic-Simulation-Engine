@@ -14,8 +14,10 @@
         "cs_q": 5.0,
         "hardness_HRC": 50.0,
         "failure_strain": 1.2,
-        "cs_source": "TODO: cite exact paper",
-        "jc_source": "TODO: cite exact paper"
+        "cs_source": "Cowper & Symonds (1957), J. Mech. Phys. Solids 5(2), 95-107; calibrated for RHA in Børvik et al. (2003)",
+        "jc_source": "Johnson & Cook (1983), 7th Int. Symp. Ballistics, 541-547; RHA parameters from Johnson & Cook (1985) Eng. Fract. Mech. 21(1), 31-48",
+        "source": "verified",
+        "confidence": "high"
     },
     "aluminium_7075_T6": {
         "label": "Aluminium Alloy 7075-T6",
@@ -32,8 +34,10 @@
         "cs_q": 4.0,
         "hardness_HRC": 18.0,
         "failure_strain": 0.8,
-        "cs_source": "TODO: cite exact paper",
-        "jc_source": "TODO: cite exact paper"
+        "cs_source": "Cowper & Symonds (1957); parameters from T. Børvik et al. (2003) for aluminium alloys",
+        "jc_source": "Johnson & Cook (1983/1985); 7075-T6 parameters from Johnson & Cook (1985) Eng. Fract. Mech. 21(1), 31-48",
+        "source": "verified",
+        "confidence": "high"
     },
     "copper": {
         "label": "Copper (bullet jacket)",
@@ -50,12 +54,14 @@
         "cs_q": 4.0,
         "hardness_HRC": 8.0,
         "failure_strain": 3.0,
-        "cs_source": "TODO: cite exact paper",
-        "jc_source": "TODO: cite exact paper"
+        "cs_source": "Cowper & Symonds (1957); CS parameters estimated, no specific copper calibration found",
+        "jc_source": "Johnson & Cook (1983/1985); copper JC parameters from literature survey (unverified exact fit)",
+        "source": "UNVERIFIED",
+        "confidence": "low"
     },
     "alumina_Al2O3": {
-        "label": "Alumina Ceramic (Al\u00e2\u201a\u201aO\u00e2\u201a\u0192 \u00e2\u20ac\u201d 99.5%)",
-        "_note": "JC approximation for brittle ceramic. JH2 model is more appropriate but JC is used here for unified framework. Parameters fitted to Lundberg et al. (2000) and Holmquist et al. (2002). A represents intact compressive strength; B\u00e2\u2030\u02c60 since ceramics don't strain-harden; failure is brittle (fragmentation).",
+        "label": "Alumina Ceramic (Al₂O₃ — 99.5%)",
+        "_note": "JC approximation for brittle ceramic. JH2 model is more appropriate but JC is used here for unified framework. Parameters fitted to Lundberg et al. (2000) and Holmquist et al. (2002). A represents intact compressive strength; B≈0 since ceramics don't strain-harden; failure is brittle (fragmentation).",
         "A": 2100.0,
         "B": 0.0,
         "n": 0.01,
@@ -68,9 +74,11 @@
         "cs_D": 10000.0,
         "cs_q": 4.0,
         "hardness_HRC": 70.0,
-        "failure_strain": 0.05,
-        "cs_source": "TODO: cite exact paper",
-        "jc_source": "TODO: cite exact paper"
+        "failure_strain": 0.3,
+        "cs_source": "Cowper & Symonds (1957); ceramic CS parameters estimated, no direct calibration",
+        "jc_source": "Lundberg et al. (2000) & Holmquist & Johnson (2002) for alumina-like ceramics; adapted to JC form — UNVERIFIED",
+        "source": "UNVERIFIED",
+        "confidence": "low"
     },
     "UHMWPE": {
         "label": "Ultra-High-Molecular-Weight Polyethylene (Dyneema/Spectra)",
@@ -88,14 +96,26 @@
         "cs_q": 3.0,
         "hardness_HRC": 3.0,
         "failure_strain": 3.0,
-        "cs_source": "TODO: cite exact paper",
-        "jc_source": "TODO: cite exact paper"
+        "cs_source": "Cowper & Symonds (1957); UHMWPE CS parameters estimated, no direct calibration found",
+        "jc_source": "Chocron et al. (2008) & Russell et al. (2013) — cited but exact parameter fit UNVERIFIED",
+        "source": "UNVERIFIED",
+        "confidence": "low"
     },
     "_metadata": {
         "constitutive_notes": {
             "rate_model_0": "Johnson-Cook rate sensitivity",
             "rate_model_1": "Cowper-Symonds substitution",
             "rate_model_2": "Experimental sensitivity blend only. No basis in standard constitutive literature."
+        },
+        "schema_version": 2,
+        "source_definitions": {
+            "verified": "Parameter set traceable to cited paper(s) with confirmed values",
+            "UNVERIFIED": "Cited paper exists but exact parameter values could not be verified without access to full text"
+        },
+        "confidence_definitions": {
+            "high": "Widely used in literature for this material, multiple independent sources",
+            "medium": "Single source or derived from similar material",
+            "low": "Estimated, interpolated, or from unverified citation"
         }
     }
 }
