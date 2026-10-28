@@ -1,6 +1,6 @@
 """
-DMSRDE Ballistic Simulation — Physics Engine
-=============================================
+Ballistic Simulation — Physics Engine
+======================================
 
 Architecture:
   - JC equation lives ONCE in stage1_part1 (_jc_sigma_scalar)

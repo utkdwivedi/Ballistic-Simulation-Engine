@@ -163,7 +163,7 @@ def main():
 
     # Generate Markdown Report
     os.makedirs("reports", exist_ok=True)
-    md_content = rf"""# ⚡ DMSRDE Ballistic Neural Surrogate: Inference Latency & Throughput Benchmark
+    md_content = rf"""# ⚡ Ballistic Neural Surrogate: Inference Latency & Throughput Benchmark
 
 > **Phase 5, Task 5.3 Profiling Report**  
 > **Model:** `BallisticHardPINN` (403,245 parameters)  

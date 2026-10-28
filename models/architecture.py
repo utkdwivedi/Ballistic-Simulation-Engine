@@ -1,6 +1,6 @@
 """
-DMSRDE Ballistic Neural Surrogate Architecture (Production ResMLP)
-==================================================================
+Ballistic Neural Surrogate Architecture (Production ResMLP)
+===========================================================
 
 Key design choices:
 1. LayerNorm: sample-independent normalization to ensure uncoupled spatial derivatives via autograd.

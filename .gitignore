@@ -36,6 +36,8 @@ debug_all.py
 
 # Personal / non-project files
 linkedin_announcement.md
+*.docx
+*.doc
 
 # Orphaned LaTeX fragments (main report is on Overleaf)
 chapters/
@@ -52,3 +54,6 @@ tables/
 *.synctex.gz
 *.fdb_latexmk
 *.fls
+
+# PDF figures (LaTeX-generated; PNG/SVG versions are canonical)
+reports/figures/*.pdf

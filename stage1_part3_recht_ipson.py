@@ -1,5 +1,5 @@
 """
-DMSRDE Ballistic Simulation — Part 3: Recht-Ipson Model
+Ballistic Simulation — Part 3: Recht-Ipson Model
 
 ANALYTICAL residual velocity and ballistic limit (V50).
 This is the VALIDATION BENCHMARK for the numerical integration
@@ -280,7 +280,7 @@ def validate_against_simulation(
 # ===================================================================
 if __name__ == "__main__":
     print("=" * 70)
-    print("  Recht-Ipson Model -- DMSRDE")
+    print("  Recht-Ipson Model")
     print("=" * 70)
 
     # --- Basic predictions ---

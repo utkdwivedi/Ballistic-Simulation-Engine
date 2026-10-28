@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dmsrde-ballistic-pinn"
+name = "ballistic-simulation-engine"
 version = "1.0.0"
 authors = [
   { name="Author", email="author@example.com" },
 ]
-description = "A Physics-Informed Neural Network data generation and modeling suite for macroscopic ballistic penetration, developed at DRDO."
+description = "A Physics-Informed Neural Network surrogate for macroscopic ballistic penetration simulation."
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
@@ -30,8 +30,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/username/dmsrde-ballistic-pinn"
-"Bug Tracker" = "https://github.com/username/dmsrde-ballistic-pinn/issues"
+"Homepage" = "https://github.com/utkdwivedi/Ballistic-Simulation-Engine"
+"Bug Tracker" = "https://github.com/utkdwivedi/Ballistic-Simulation-Engine/issues"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

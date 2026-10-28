@@ -1,4 +1,4 @@
-# ⚡ DMSRDE Ballistic Neural Surrogate: Inference Latency & Throughput Benchmark
+# ⚡ Ballistic Neural Surrogate: Inference Latency & Throughput Benchmark
 
 > **Phase 5, Task 5.3 Profiling Report**  
 > **Model:** `BallisticHardPINN` (403,245 parameters)  

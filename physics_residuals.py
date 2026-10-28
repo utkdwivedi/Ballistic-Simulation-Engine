@@ -1,5 +1,5 @@
 """
-DMSRDE — Physics Residual Functions for PINN Training (Stage 3)
+Physics Residual Functions for PINN Training (Stage 3)
 
 These functions compute "how much the physics is violated" at any
 point in the (x, V, σ, T, ε, ε̇) state space. They are defined in

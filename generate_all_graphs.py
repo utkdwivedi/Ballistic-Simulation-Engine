@@ -601,7 +601,7 @@ def section_8_heatmap():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("  DMSRDE — Comprehensive Report Graph Generator")
+    print("  Comprehensive Report Graph Generator")
     print("=" * 60)
 
     section_1_single_trajectory()

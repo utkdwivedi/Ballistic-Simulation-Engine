@@ -1,5 +1,5 @@
 """
-DMSRDE Ballistic Simulation — Part 1: Johnson-Cook Model
+Ballistic Simulation — Part 1: Johnson-Cook Model
 
 CANONICAL SOURCE for the JC equation. The Numba scalar kernel
 `_jc_sigma_scalar` is the SINGLE implementation. Array processing
@@ -231,7 +231,7 @@ def johnson_cook_stress(
 # ===========================================================
 if __name__ == "__main__":
     print("=" * 55)
-    print("  Johnson-Cook Model — DMSRDE")
+    print("  Johnson-Cook Model")
     print("=" * 55)
 
     mat = MATERIALS["RHA_steel"]

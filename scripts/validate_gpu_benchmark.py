@@ -60,7 +60,8 @@ def main():
     # Warm‑up
     for _ in range(5):
         with torch.no_grad():
-            _ = model(next(iter(loader)).to(device))
+            batch = next(iter(loader))
+            _ = model(batch[0].to(device))
 
     warm = measure_inference_speed(model, loader, device)
     print(f"Warm‑up latency : {warm:.6f} s for {NUM_TRAIN_SAMPLES} samples")
@@ -80,8 +81,8 @@ def main():
     bench_dir = Path("reports/benchmarks")
     bench_dir.mkdir(parents=True, exist_ok=True)
     csv_path = bench_dir / "gpu_benchmark.csv"
-    csv_path.write_text("timestamp,batch_size,latency,throughput\n")
     csv_path.write_text(
+        f"timestamp,batch_size,latency,throughput\n"
         f"{time.time()},{NUM_TRAIN_SAMPLES},{avg:.6f},{throughput:.2f}\n",
         encoding="utf-8",
     )

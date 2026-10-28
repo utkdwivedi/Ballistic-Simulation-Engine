@@ -1,5 +1,5 @@
 """
-DMSRDE Ballistic Simulation — Part 2: Cowper-Symonds Model
+Ballistic Simulation — Part 2: Cowper-Symonds Model
 
 CANONICAL SOURCE for CS DIF. The Numba scalar kernel `_cs_dif_scalar`
 is the SINGLE implementation. simulation.py imports it directly.
@@ -72,7 +72,7 @@ def cowper_symonds_stress(
 # ===========================================================
 if __name__ == "__main__":
     print("=" * 65)
-    print("  Cowper-Symonds Model — DMSRDE")
+    print("  Cowper-Symonds Model")
     print("=" * 65)
 
     test_rates = [1e0, 1e2, 1e3, 1e4, 1e5, 1e6]
