@@ -1,20 +1,18 @@
 # APP – Streamlit Demo App
 
-This directory contains a minimal Streamlit application that lets a user
-interactively compare the simulator and the PINN surrogate on a single
-trajectory.
-
-```python
 # app/streamlit_app.py
 import streamlit as st
-import json
-
-# load the PINN model (adjust path as needed)
-from models.architecture import BallisticHardPINN
 import torch
 
+from ballistic.dataloader import INPUT_COLS
+
+# load the PINN model (adjust path as needed)
+from ballistic.models.architecture import BallisticHardPINN
+from ballistic.physics.johnson_cook import MATERIALS
+
 # simulator import
-from simulation import simulate_trajectory
+from ballistic.simulation import simulate_trajectory
+
 
 # Helper to generate a trajectory using the PINN
 @st.cache_data
@@ -36,7 +34,7 @@ def pinn_velocity_through_depth(
         "x_mm": np.linspace(0, thickness, num_points),
     }
     inp_arr = np.column_stack(
-        [inp[k] for k in BallisticPINNDataset.INPUT_COLS]
+        [inp[k] for k in INPUT_COLS]
     )
     tensor = torch.from_numpy(inp_arr.astype("float32"))
     model = BallisticHardPINN()
@@ -72,11 +70,3 @@ if run:
     st.subheader("Hard-PINN Trajectory")
     st.line_chart({"depth": depth, "velocity": v_pred})
     st.markdown("Both curves plotted on the same axes (x‑axis is depth).")
-```
-
-To run it locally:
-
-```bash
-pip install streamlit
-streamlit run app/streamlit_app.py
-```

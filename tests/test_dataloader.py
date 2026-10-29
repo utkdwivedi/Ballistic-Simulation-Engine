@@ -1,7 +1,10 @@
-import pytest
-import numpy as np
 import os
-from pinn_dataloader import _log_safe, _normalize, _denormalize, BallisticPINNDataset
+
+import numpy as np
+import pytest
+
+from ballistic.dataloader import BallisticPINNDataset, _denormalize, _log_safe, _normalize
+
 
 def test_log_safe():
     # log10(max(x, 1.0))

@@ -1,16 +1,15 @@
 # Minimal Gradio App – ShowSimulator vs PINN
 
-```python
 # app/gradio_demo.py
+
 import gradio as gr
-import json
-
-from simulation import simulate_trajectory
-from models.architecture import BallisticHardPINN
-import torch
 import numpy as np
+import torch
 
-MATERIALS = json.load(open("materials_config.json"))
+from ballistic.dataloader import INPUT_COLS
+from ballistic.models.architecture import BallisticHardPINN
+from ballistic.physics.johnson_cook import MATERIALS
+from ballistic.simulation import simulate_trajectory
 
 
 def simulate_and_pinn(plate_thickness_mm, material_name, bullet_velocity_ms):
@@ -36,7 +35,7 @@ def simulate_and_pinn(plate_thickness_mm, material_name, bullet_velocity_ms):
         "plate_temperature_K": 298.0,
         "x_mm": depths,
     }
-    inp_arr = np.column_stack([inp[k] for k in BallisticPINNDataset.INPUT_COLS])
+    inp_arr = np.column_stack([inp[k] for k in INPUT_COLS])
     tensor = torch.from_numpy(inp_arr.astype("float32"))
     model = BallisticHardPINN()
     model.load_state_dict(torch.load("models/hardpinn.pt", map_location="cpu"))
@@ -65,10 +64,3 @@ demo = gr.Interface(
 )
 
 demo.launch()
-```
-
-Install with:
-
-```bash
-pip install gradio
-```

@@ -2,8 +2,8 @@
 Unit tests for production ResMLP architecture and LayerNorm sample-independence.
 """
 import torch
-import pytest
-from models.architecture import BallisticResMLP
+
+from ballistic.models.architecture import BallisticResMLP
 
 
 def test_layernorm_sample_independence():
@@ -82,7 +82,7 @@ def test_hard_boundary_ansatz_exactness():
       damage(0) = 0
     to within machine precision.
     """
-    from models.architecture import BallisticHardPINN
+    from ballistic.models.architecture import BallisticHardPINN
     torch.manual_seed(42)
     model = BallisticHardPINN()
     model.eval()
@@ -125,7 +125,7 @@ def test_hard_pinn_damage_reachability():
     Verify that damage can reach full 1.0 (perforation/plugging) even at small penetration
     depths (e.g. x_norm = 0.05), preventing artificial capacity capping.
     """
-    from models.architecture import BallisticHardPINN
+    from ballistic.models.architecture import BallisticHardPINN
     model = BallisticHardPINN()
     x = torch.zeros(1, 6)
     x[0, 5] = 0.05  # 5 mm depth
@@ -142,7 +142,7 @@ def test_hard_pinn_no_dead_relu_in_sigma():
     Verify that flow stress maintains non-zero gradient even when raw pre-activations
     are negative (preventing dead ReLU trap).
     """
-    from models.architecture import BallisticHardPINN
+    from ballistic.models.architecture import BallisticHardPINN
     model = BallisticHardPINN()
     x = torch.rand(1, 6)
     with torch.no_grad():

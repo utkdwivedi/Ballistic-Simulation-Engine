@@ -6,11 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "ballistic-simulation-engine"
 version = "1.0.0"
 authors = [
-  { name="Author", email="author@example.com" },
+  { name="Utkarsh Dwivedi" },
 ]
 description = "A Physics-Informed Neural Network surrogate for macroscopic ballistic penetration simulation."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -25,13 +25,19 @@ dependencies = [
     "pyarrow>=12.0",
     "numba>=0.57",
     "torch>=2.0",
-    "matplotlib>=3.7",
-    "pytest>=7.0"
+    "matplotlib>=3.7"
 ]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "ruff", "mypy"]
+demos = ["streamlit", "gradio"]
 
 [project.urls]
 "Homepage" = "https://github.com/utkdwivedi/Ballistic-Simulation-Engine"
 "Bug Tracker" = "https://github.com/utkdwivedi/Ballistic-Simulation-Engine/issues"
+
+[tool.setuptools.packages.find]
+include = ["ballistic*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

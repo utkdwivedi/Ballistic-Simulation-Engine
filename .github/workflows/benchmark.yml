@@ -28,10 +28,10 @@ jobs:
           pip install numpy pandas pyarrow matplotlib seaborn numba torch==2.3.0+cu121 torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
       - name: Run GPU benchmark
         run: |
-          python scripts/validate_gpu_benchmark.py
+          python scripts/eval/validate_gpu_benchmark.py
             2> benchmark.out
       - name: Archive benchmark output
         uses: actions/upload-artifact@v4
         with:
           name: gpu-benchmark
-          path: reports/benchmarks/gpu_benchmark.csv
+          path: results/reports/benchmarks/gpu_benchmark.csv

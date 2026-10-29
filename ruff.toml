@@ -1,0 +1,18 @@
+# Ruff configuration
+# See https://docs.astral.sh/ruff/configuration/
+
+line-length = 100
+target-version = "py310"
+
+[lint]
+extend-select = ["I", "N", "UP"]
+ignore = ["E501", "B008"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+[lint.isort]
+known-first-party = ["ballistic"]

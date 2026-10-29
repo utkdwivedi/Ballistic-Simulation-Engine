@@ -31,4 +31,4 @@ jobs:
           pip install numpy pandas pyarrow matplotlib seaborn numba torch scipy pytest
       - name: Run validation harness
         run: |
-          python scripts/validate_against_experiments.py
+          python scripts/eval/validate_against_experiments.py

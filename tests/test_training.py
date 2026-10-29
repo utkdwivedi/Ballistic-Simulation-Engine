@@ -4,11 +4,13 @@ Verifies that the fixes to train_simple_nn.py, train_pinn_demo.py,
 and infer.py produce valid, non-NaN results on test data.
 """
 import os
+
+import numpy as np
 import pytest
 import torch
-import numpy as np
-from torch.utils.data import Subset, DataLoader
-from pinn_dataloader import BallisticPINNDataset
+from torch.utils.data import DataLoader, Subset
+
+from ballistic.dataloader import BallisticPINNDataset
 
 
 @pytest.fixture
@@ -23,7 +25,7 @@ def mini_dataset():
 
 
 def test_model_forward_no_nan(mini_dataset):
-    from train_simple_nn import BallisticFCNN
+    from scripts.train.train_fcnn import BallisticFCNN
     model = BallisticFCNN()
     loader = DataLoader(
         Subset(mini_dataset, range(min(64, len(mini_dataset)))),
@@ -38,8 +40,10 @@ def test_model_forward_no_nan(mini_dataset):
 
 def test_supervised_loss_decreases(mini_dataset):
     """Verify that 3 epochs of training reduces loss."""
-    from train_simple_nn import BallisticFCNN
-    import torch.optim as optim
+    torch.manual_seed(0)
+    from torch import optim
+
+    from scripts.train.train_fcnn import BallisticFCNN
 
     model = BallisticFCNN()
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
@@ -78,7 +82,7 @@ def test_normalization_roundtrip(mini_dataset):
 
 def test_inference_physical_bounds():
     """Verify that denormalize_output in infer.py strictly respects physical limits."""
-    from infer import denormalize_output
+    from scripts.viz.infer import denormalize_output
     # Test boundary outputs including slightly out-of-range raw predictions
     test_norm = np.array([-0.05, -0.1, 1.2, -0.02, 1.5], dtype=np.float32)
     res = denormalize_output(test_norm)
@@ -92,7 +96,18 @@ def test_inference_physical_bounds():
 
 def test_compute_physics_loss_well_conditioned(mini_dataset):
     """Verify that the non-dimensionalized physics loss produces well-conditioned, non-divergent loss."""
-    from train_pinn_demo import BallisticPINN, compute_physics_loss, MAT_A, MAT_B, MAT_N, MAT_C_JC, MAT_M, MAT_TMELT, MAT_RHO, MAT_CP
+    from scripts.train.train_pinn import (
+        MAT_A,
+        MAT_B,
+        MAT_C_JC,
+        MAT_CP,
+        MAT_M,
+        MAT_N,
+        MAT_RHO,
+        MAT_TMELT,
+        BallisticPINN,
+        compute_physics_loss,
+    )
     device = "cpu"
     # Seed model init for reproducibility. Fresh random inits can produce
     # extreme outputs that blow up the loss (inherent to PINNs); gradient
@@ -124,8 +139,9 @@ def test_compute_physics_loss_well_conditioned(mini_dataset):
 
 def test_hard_pinn_supervised_loss_decreases(mini_dataset):
     """Verify that BallisticHardPINN loss decreases over 3 optimization steps."""
-    from models.architecture import BallisticHardPINN
-    import torch.optim as optim
+    from torch import optim
+
+    from ballistic.models.architecture import BallisticHardPINN
 
     model = BallisticHardPINN()
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
@@ -152,8 +168,18 @@ def test_hard_pinn_supervised_loss_decreases(mini_dataset):
 
 def test_hard_pinn_physics_loss_well_conditioned(mini_dataset):
     """Verify BallisticHardPINN physics loss computation is stable and non-divergent."""
-    from models.architecture import BallisticHardPINN
-    from train_pinn_demo import compute_physics_loss, MAT_A, MAT_B, MAT_N, MAT_C_JC, MAT_M, MAT_TMELT, MAT_RHO, MAT_CP
+    from ballistic.models.architecture import BallisticHardPINN
+    from scripts.train.train_pinn import (
+        MAT_A,
+        MAT_B,
+        MAT_C_JC,
+        MAT_CP,
+        MAT_M,
+        MAT_N,
+        MAT_RHO,
+        MAT_TMELT,
+        compute_physics_loss,
+    )
     device = "cpu"
     model = BallisticHardPINN()
     loader = DataLoader(Subset(mini_dataset, range(min(32, len(mini_dataset)))), batch_size=32)

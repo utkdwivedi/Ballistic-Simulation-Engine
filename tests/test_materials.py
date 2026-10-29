@@ -1,9 +1,7 @@
-import pytest
 import numpy as np
 
-from stage1_part1_johnson_cook import johnson_cook_stress, MATERIALS
-from stage1_part2_cowper_symonds import cowper_symonds_dif
-
+from ballistic.physics.cowper_symonds import cowper_symonds_dif
+from ballistic.physics.johnson_cook import MATERIALS, johnson_cook_stress
 
 # Expected reasonable bounds for material parameters
 MATERIAL_BOUNDS = {

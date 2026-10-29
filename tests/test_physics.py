@@ -1,7 +1,7 @@
-import pytest
 import numpy as np
-from simulation import simulate_trajectory, simulate_ballistic_impact
-from stage1_part1_johnson_cook import MATERIALS
+
+from ballistic.simulation import simulate_ballistic_impact, simulate_trajectory
+
 
 def test_simulate_trajectory_no_penetration():
     # A small bullet at low velocity against a thick RHA plate should not penetrate

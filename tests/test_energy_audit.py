@@ -2,20 +2,21 @@
 Unit and Regression Tests for Energy Conservation and Boundary Invariants (Phase 4).
 """
 import math
+
 import numpy as np
-import pytest
 import torch
-from stage1_part1_johnson_cook import MATERIALS
-from simulation import (
-    _integrate_trajectory,
-    _compute_n_steps,
+
+from ballistic.models.architecture import BallisticHardPINN
+from ballistic.physics.johnson_cook import MATERIALS
+from ballistic.simulation import (
     _RATE_JC,
-    TAYLOR_QUINNEY_BETA,
-    SHEAR_ZONE_WIDTH_RATIO,
     PLUG_SHEAR_ANGLE_DEG,
+    SHEAR_ZONE_WIDTH_RATIO,
     T_ROOM,
+    TAYLOR_QUINNEY_BETA,
+    _compute_n_steps,
+    _integrate_trajectory,
 )
-from models.architecture import BallisticHardPINN
 
 D_BULLET_M = 0.00762
 M_BULLET_KG = 0.0079

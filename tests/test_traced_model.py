@@ -1,11 +1,14 @@
 # TorchScript trace test
 # Add this as a new test file so CI verifies the traced model matches eager output.
 
-import torch
-from models.architecture import BallisticHardPINN
-from simulation import simulate_trajectory
-import numpy as np
 import random
+
+import numpy as np
+import torch
+
+from ballistic.dataloader import INPUT_COLS
+from ballistic.models.architecture import BallisticHardPINN
+
 
 def test_traced_model_matches_eager():
     # Seed for reproducibility
@@ -20,7 +23,7 @@ def test_traced_model_matches_eager():
     model.eval()
 
     # Create a random input tensor matching one training sample
-    inp_np = np.random.uniform(0, 1, size=(1, len(BallisticHardPINNDataset.INPUT_COLS)))
+    inp_np = np.random.uniform(0, 1, size=(1, len(INPUT_COLS)))
     inp_t = torch.from_numpy(inp_np.astype("float32"))
 
     with torch.no_grad():
